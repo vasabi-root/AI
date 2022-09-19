@@ -4,7 +4,6 @@ from PyQt5.QtCore import QEvent, Qt
 
 from shared import Config
 from interface import Interface
-from test import Test
 
 class Window(QMainWindow):
     '''
