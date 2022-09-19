@@ -51,7 +51,7 @@ class Cell(QPushButton):
         if (not self.isMoved):
             self.setStyleSheet(defStyle + "background-color: " + Colors.GREEN_STR)
         else:
-            self.setStyleSheet(defStyle + "background-color: red")
+            self.setStyleSheet(defStyle + "background-color: " + Colors.RED_STR)
         
     def anime(self) -> None:
         self.anim = QPropertyAnimation(self, b"pos")

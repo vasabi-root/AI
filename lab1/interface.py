@@ -61,7 +61,8 @@ class Interface(QWidget):
 
         brush = QBrush()
         brush.setStyle(Qt.SolidPattern)
-        brush.setColor(Colors.GREY)
+        # brush.setColor(Colors.GREY)
+        brush.setColor(Colors.LIGHT_GREEN)
         
         self.qp.setBrush(brush)
         self.qp.drawRect(-1, -1, w+1, h+1)
@@ -85,6 +86,7 @@ class Interface(QWidget):
             start, 
             end
         )
+        # self.animeBoard.matrix[0][0].setIsMoved(True)
     
     def initLabels(self) -> None:
         self.startLabel = QLabel("START", self)

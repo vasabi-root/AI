@@ -60,13 +60,14 @@ class Colors:
     BLUE = QColor("#0057B8")
     GREEN = QColor("#50AB91")
     DARK_GREEN = QColor("#106B51")
+    LIGHT_GREEN = QColor("#80DBC1")
     
     GREY = QColor("#E0E0E0")
-    # GREY = QColor("#909090")
-    RED = Qt.red
+    RED = QColor("#D00000")
     RED_A120 = QColor(255, 0, 0, 120)
     BLACK = Qt.black
     BLACK_A100 = QColor(0, 0, 0, 100)
     
     GREEN_STR = "#50AB91"
     DARK_GREEN_STR = "#106B51"
+    RED_STR = "#D00000"
