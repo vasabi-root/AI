@@ -8,12 +8,10 @@ from PyQt5.QtGui import QMouseEvent, QKeyEvent
 
 import numpy as np
 from cell import Cell
-from search import Search
+from node import Node
 from shared import Colors
 
 from shared import Config
-from node import Node, dfs
-
 
 class Board:
     '''
@@ -26,7 +24,7 @@ class Board:
     node: Node                  # текущее состояние (для алгоритма)
     rect: QRect                 # полотно под ячейками
     topLeft: QPoint             # позици доски
-    fringer: List[List[Search]]   # кайма (нераскрытые узлы дерева)
+    fringer: List[List[Node]]   # кайма (нераскрытые узлы дерева)
     m: int                      # размерность доски
     
     
@@ -47,16 +45,16 @@ class Board:
         self.brush.setColor(Colors.DARK_GREEN)
         self.group = QSequentialAnimationGroup(self.widget)
     
-    def makeRoot(self, state: List[List]) -> None:
+    def makeRoot(self, ar: List[List]) -> None:
         '''
         Создание корня дерева
         '''
         self.fringer = []
-        self.root = Node(state=state, i=2, j=2)
+        self.root = Node(ar, fringer=self.fringer)
         self.node = self.root
-        self.setMatrix(state)
+        self.setMatrix(ar)
 
-    def setMatrix(self, state: List[List]) -> None:
+    def setMatrix(self, ar: List[List]) -> None:
         '''
         Инициализация матрицы фишек (фронт)
         '''
@@ -66,36 +64,33 @@ class Board:
             ypos = self.topLeft.y() + i*Config.CELL_SIZE
             for j in range(self.m):
                 xpos = self.topLeft.x() + j*Config.CELL_SIZE
-                if (state[i][j] == 0):
-                    self.matrix[i].append(0)
+                if (ar[i][j] == 0):
+                    self.matrix[i].append(0)    
                 else:
-                    self.matrix[i].append(Cell(self.widget, xpos, ypos, state[i][j]))
+                    self.matrix[i].append(Cell(self.widget, xpos, ypos, ar[i][j]))
                     
     def chooseNext(self, DFSDL: bool, depth: int=50) -> bool:
         '''
         Переход к следующей вершине (фронт)
         '''
-
         if not DFSDL:
-            path = dfs(self.root, self.end)
-
+            self.node.DFSopen(self.fringer)
+            next = self.node.DFSnext()
         else:
-            path = dfs(self.root, self.end)
-            # self.node.DFSDLopen(self.fringer, depth)
-            # next = self.node.DFSDLnext(depth)
+            self.node.DFSDLopen(self.fringer, depth)
+            next = self.node.DFSDLnext(depth)
             
-        if len(path) > 0:
+        if next != None:
             # Текущее положение пустой клетки
-            for node in path:
-                r1 = self.node.z_row 
-                c1 = self.node.z_col
-                
-                r2 = node.z_row
-                c2 = node.z_col
-                self.node = node
-                
-                self.matrix[r1][c1], self.matrix[r2][c2] = self.matrix[r2][c2], self.matrix[r1][c1]
-                self.anime(r1, c1)
+            r1 = self.node.z_row 
+            c1 = self.node.z_col
+            
+            r2 = next.z_row
+            c2 = next.z_col
+            self.node = next
+            
+            self.matrix[r1][c1], self.matrix[r2][c2] = self.matrix[r2][c2], self.matrix[r1][c1]
+            self.anime(r1, c1)
             return True
         return False
         
@@ -125,7 +120,7 @@ class Board:
         y = self.topLeft.y() + Config.CELL_SIZE*row
         self.anim = QPropertyAnimation(self.matrix[row][col], b"pos")
         self.anim.setEndValue(QPoint(x, y))
-        self.anim.setDuration(1000)
+        self.anim.setDuration(150)
         self.anim.setEasingCurve(QEasingCurve.OutCubic)
         self.group.addAnimation(self.anim)
         # self.anim.start()

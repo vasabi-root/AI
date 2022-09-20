@@ -72,9 +72,9 @@ class Interface(QWidget):
                   [2, 5, 8],
                   [7, 1, 0] ]
         self.startBoard = Board(self, QPoint(Config.CELL_SIZE, Config.CELL_SIZE*3), start)
-        end = [ [3, 6, 4],
-                [2, 0, 1],
-                [7, 8, 5] ]
+        end = [ [0, 1, 2],
+                [3, 4, 5],
+                [6, 7, 8] ]
         self.endBoard = Board(
             self, 
             QPoint(Config.WINDOW_WIDTH - (Config.CELL_SIZE*4), Config.CELL_SIZE*3), 
@@ -198,13 +198,10 @@ class Interface(QWidget):
         '''
         self.animeBoard.group = QSequentialAnimationGroup(self)
         if (int(self.toggle.handle_position) == 0):
-            if (self.animeBoard.chooseNext(DFSDL=0)):
-                self.animeBoard.group.start()
-            else:
-                print('Not solved!')
+            while (self.animeBoard.chooseNext(DFSDL=0)):
                 pass
         else:
             self.depth = int(self.depthText.toPlainText())
-            if (self.animeBoard.chooseNext(DFSDL=1,depth=self.depth)):
-                self.animeBoard.group.start()
-        
+            while (self.animeBoard.chooseNext(DFSDL=1,depth=self.depth)):
+                pass
+        self.animeBoard.group.start()
