@@ -6,6 +6,27 @@ from PyQt5.QtCore import Qt
 # class  Swap (enum):
 #     TL
 
+class Colors:
+    '''
+    Основные цвета
+    '''
+    YELLOW = QColor("#FFD800")
+    BLUE = QColor("#0057B8")
+    GREEN = QColor("#50AB91")
+    DARK_GREEN = QColor("#106B51")
+    LIGHT_GREEN = QColor("#80DBC1")
+    
+    GREY = QColor("#E0E0E0")
+    RED = QColor("#D00000")
+    RED_A120 = QColor(255, 0, 0, 120)
+    BLACK = Qt.black
+    BLACK_A100 = QColor(0, 0, 0, 100)
+    
+    GREEN_STR = "#50AB91"
+    DARK_GREEN_STR = "#106B51"
+    RED_STR = "#D00000"
+    LIGHT_GREEN_STR = "#80DBC1"
+
 class Config:
     '''
     Настройки проекта
@@ -13,7 +34,7 @@ class Config:
     WINDOW_TOP_PAD = 300
     WINDOW_LEFT_PAD = 300
     WINDOW_WIDTH = 400
-    WINDOW_HEIGHT = 400
+    WINDOW_HEIGHT = 450
 
     R_LEFT_X = 0
     R_LEFT_Y = 0
@@ -21,6 +42,45 @@ class Config:
     R_RIGHT_Y = 100
     
     CELL_SIZE = 30
+    
+    BUTTON_CONF = \
+    f'''
+        QPushButton:hover {{
+            border: none;
+            outline: none;
+        }}
+        QPushButton {{
+            border-color: {Colors.DARK_GREEN_STR};
+            border-style: solid;
+            border-radius: 2px;
+            border-width: 3px;
+            color: white;
+            text-align: center;
+            background-color: {Colors.GREEN_STR}
+        }}
+        QPushButton:pressed {{
+            border: none;
+            outline: none;
+            color: white;
+            text-align: center;
+            background-color: {Colors.DARK_GREEN_STR}
+        }}
+        QPushButton:disabled {{
+            border-color: {Colors.DARK_GREEN_STR};
+            border-style: solid;
+            border-radius: 2px;
+            border-width: 3px;
+            color: white;
+            text-align: center;
+            background-color: {Colors.RED_STR}
+        }}
+    '''
+    LABEL_CONF = \
+    f'''
+        QLabel {{
+            color: black
+        }}
+    '''
     
     @staticmethod
     def getHash(matrix: List[List]) -> int:
@@ -48,26 +108,3 @@ class Config:
                 else:
                     mat_copy[i].append(matrix[i][j])
         return mat_copy
-                
-    
-
-
-class Colors:
-    '''
-    Основные цвета
-    '''
-    YELLOW = QColor("#FFD800")
-    BLUE = QColor("#0057B8")
-    GREEN = QColor("#50AB91")
-    DARK_GREEN = QColor("#106B51")
-    LIGHT_GREEN = QColor("#80DBC1")
-    
-    GREY = QColor("#E0E0E0")
-    RED = QColor("#D00000")
-    RED_A120 = QColor(255, 0, 0, 120)
-    BLACK = Qt.black
-    BLACK_A100 = QColor(0, 0, 0, 100)
-    
-    GREEN_STR = "#50AB91"
-    DARK_GREEN_STR = "#106B51"
-    RED_STR = "#D00000"

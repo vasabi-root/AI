@@ -3,15 +3,23 @@ from time import sleep
 from typing import List
 from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QGridLayout, qApp
 from PyQt5.QtGui import QPainter, QBrush, QPen, QFont, QColor, QWheelEvent
-from PyQt5.QtCore import Qt, QPoint, QRect, QSize, QPropertyAnimation, QEasingCurve, QSequentialAnimationGroup
+from PyQt5.QtCore import ( 
+    Qt, QPoint, QRect, QSize, QPropertyAnimation, QThreadPool,
+    QEasingCurve, QSequentialAnimationGroup, QRunnable, QAbstractAnimation
+)
+from PyQt5.QtMultimedia import QSound
+from PyQt5.QtCore import QRunnable
 from PyQt5.QtGui import QMouseEvent, QKeyEvent
+
 
 import numpy as np
 from cell import Cell
-from node import Node
+from search import Search
 from shared import Colors
 
 from shared import Config
+from node import Node, dfs
+
 
 class Board:
     '''
@@ -26,6 +34,7 @@ class Board:
     topLeft: QPoint             # позици доски
     fringer: List[List[Node]]   # кайма (нераскрытые узлы дерева)
     m: int                      # размерность доски
+    path: List[List[Node]]      # путь от начала в конец (если существует)
     
     
     def __init__(self, widget: QWidget, topLeft: QPoint, start: List[List[int]], end: List[List[int]]=None):
@@ -44,17 +53,19 @@ class Board:
         self.brush.setStyle(Qt.SolidPattern)
         self.brush.setColor(Colors.DARK_GREEN)
         self.group = QSequentialAnimationGroup(self.widget)
+        self.path = []
+        self.click = QSound("D:\\Users\\vasab\\Documents\\Intro_AI\\lab1\\click1.wav")
     
-    def makeRoot(self, ar: List[List]) -> None:
+    def makeRoot(self, state: List[List]) -> None:
         '''
         Создание корня дерева
         '''
         self.fringer = []
-        self.root = Node(ar, fringer=self.fringer)
+        self.root = Node(state=state, i=2, j=2)
         self.node = self.root
-        self.setMatrix(ar)
+        self.setMatrix(state)
 
-    def setMatrix(self, ar: List[List]) -> None:
+    def setMatrix(self, state: List[List]) -> None:
         '''
         Инициализация матрицы фишек (фронт)
         '''
@@ -64,39 +75,47 @@ class Board:
             ypos = self.topLeft.y() + i*Config.CELL_SIZE
             for j in range(self.m):
                 xpos = self.topLeft.x() + j*Config.CELL_SIZE
-                if (ar[i][j] == 0):
-                    self.matrix[i].append(0)    
+                if (state[i][j] == 0):
+                    self.matrix[i].append(0)
                 else:
-                    self.matrix[i].append(Cell(self.widget, xpos, ypos, ar[i][j]))
+                    self.matrix[i].append(Cell(self.widget, xpos, ypos, state[i][j]))
                     
-    def chooseNext(self, DFSDL: bool, depth: int=50) -> bool:
+    def solve(self, DFSDL: bool, depth: int=50) -> bool:
         '''
         Переход к следующей вершине (фронт)
         '''
-        if not DFSDL:
-            self.node.DFSopen(self.fringer)
-            next = self.node.DFSnext()
-        else:
-            self.node.DFSDLopen(self.fringer, depth)
-            next = self.node.DFSDLnext(depth)
-            
-        if next != None:
+        if (len(self.path) == 0):
+            if not DFSDL:
+                self.path = dfs(self.root, self.end)
+            else:
+                self.path = dfs(self.root, self.end)
+                # self.node.DFSDLopen(self.fringer, depth)
+                # next = self.node.DFSDLnext(depth)
+        if (len(self.path) > 0):
             # Текущее положение пустой клетки
+            self.makeAnime()
+            return True # решение существует
+        return False    # решения нет
+        
+    # def chooseDFSDL_next(self, depth) -> bool:
+    #     pass
+        
+    def makeAnime(self, isReversed: bool=False) -> None:
+        path = self.path.copy()
+        if isReversed: 
+            path.reverse()
+        path.remove(path[0])
+        self.group = QSequentialAnimationGroup(self.widget)
+        for node in path:
             r1 = self.node.z_row 
             c1 = self.node.z_col
             
-            r2 = next.z_row
-            c2 = next.z_col
-            self.node = next
+            r2 = node.z_row
+            c2 = node.z_col
             
+            self.node = node
             self.matrix[r1][c1], self.matrix[r2][c2] = self.matrix[r2][c2], self.matrix[r1][c1]
-            self.anime(r1, c1)
-            return True
-        return False
-        
-    def chooseDFSDL_next(self, depth) -> bool:
-        pass
-        
+            self.anime(r1, c1, isReversed)
     
     def draw(self) -> None:
         self.initPainter()
@@ -115,14 +134,26 @@ class Board:
         self.qp.setBrush(self.brush)
         self.qp.setRenderHints(QPainter.Antialiasing)
         
-    def anime (self, row, col) -> None:
+    def anime (self, row: int, col: int, isReversed: bool) -> None:
+        t = 50 if (isReversed) else 300
         x = self.topLeft.x() + Config.CELL_SIZE*col
         y = self.topLeft.y() + Config.CELL_SIZE*row
         self.anim = QPropertyAnimation(self.matrix[row][col], b"pos")
         self.anim.setEndValue(QPoint(x, y))
-        self.anim.setDuration(150)
+        self.anim.setDuration(t)
         self.anim.setEasingCurve(QEasingCurve.OutCubic)
+        # self.anim.stateChanged.connect(self.soundOn)
         self.group.addAnimation(self.anim)
         # self.anim.start()
-        
+
+    def soundOn(self, old, n) -> None:
+        if (old == QAbstractAnimation.Stopped):
+            QThreadPool.globalInstance().start(Run(self.click))
+
+class Run(QRunnable):
+    def __init__(self, s: QSound) -> None:
+        super().__init__()
+        self.s = s
+    def run(self):
+        self.s.play()
         

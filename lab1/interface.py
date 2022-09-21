@@ -1,12 +1,19 @@
 from asyncio import wait_for
 from compileall import compile_file
+from email import message
+import imp
 from time import sleep
 from typing import List
-from PyQt5.QtWidgets import QWidget, QLabel, QPushButton, QTextEdit
+from PyQt5.QtWidgets import QWidget, QLabel, QPushButton, QTextEdit, QMessageBox
 from PyQt5.QtGui import QPainter, QBrush, QPen, QFont, QColor, QWheelEvent
-from PyQt5.QtCore import Qt, QPoint, QPointF, QSize, QRect, QSequentialAnimationGroup
+from PyQt5.QtCore import (
+    Qt, QPoint, QPointF, QSize, QRect, 
+    QSequentialAnimationGroup, QRunnable, QThreadPool
+)
+from PyQt5.QtMultimedia import QSound, QMediaPlayer, QMediaContent
 from PyQt5.QtGui import QMouseEvent, QKeyEvent
 import numpy as np
+import os
 
 from board import Board
 from shared import Config, Colors
@@ -29,6 +36,7 @@ class Interface(QWidget):
         #        [4, 0, 5],
         #        [6, 7, 8] ]
         
+        self.click = QSound("D:\\Users\\vasab\\Documents\\Intro_AI\\lab1\\click1.wav")
         self.depth = 50
         self.initBoards()
         self.initLabels()
@@ -72,9 +80,12 @@ class Interface(QWidget):
                   [2, 5, 8],
                   [7, 1, 0] ]
         self.startBoard = Board(self, QPoint(Config.CELL_SIZE, Config.CELL_SIZE*3), start)
-        end = [ [0, 1, 2],
-                [3, 4, 5],
-                [6, 7, 8] ]
+        end = [ [2, 3, 4],
+                [0, 6, 1],
+                [7, 8, 5] ]
+        # end = [ [0, 1, 2],
+        #         [3, 4, 5],
+        #         [6, 7, 8] ]
         self.endBoard = Board(
             self, 
             QPoint(Config.WINDOW_WIDTH - (Config.CELL_SIZE*4), Config.CELL_SIZE*3), 
@@ -95,6 +106,7 @@ class Interface(QWidget):
             QSize(Config.CELL_SIZE*3, Config.CELL_SIZE)
         ))
         self.startLabel.setAlignment(Qt.AlignCenter)
+        self.startLabel.setStyleSheet(Config.LABEL_CONF)
         
         self.endLabel = QLabel("END", self)
         self.endLabel.setGeometry(QRect(
@@ -102,6 +114,7 @@ class Interface(QWidget):
             QSize(Config.CELL_SIZE*3, Config.CELL_SIZE)
         ))
         self.endLabel.setAlignment(Qt.AlignCenter)
+        self.endLabel.setStyleSheet(Config.LABEL_CONF)
         
         self.solLabel = QLabel("SOLUTION", self)
         self.solLabel.setGeometry(QRect(
@@ -109,6 +122,7 @@ class Interface(QWidget):
             QSize(Config.CELL_SIZE*3, Config.CELL_SIZE)
         ))
         self.solLabel.setAlignment(Qt.AlignCenter)
+        self.solLabel.setStyleSheet(Config.LABEL_CONF)
         
         self.arrowLabel = QLabel("--------------->", self)
         self.arrowLabel.setGeometry(QRect(
@@ -116,6 +130,7 @@ class Interface(QWidget):
             QSize(Config.CELL_SIZE*4, Config.CELL_SIZE)
         ))
         self.arrowLabel.setAlignment(Qt.AlignCenter)
+        self.arrowLabel.setStyleSheet(Config.LABEL_CONF)
         
         self.depthLabel = QLabel("DEPTH:", self)
         self.depthLabel.setGeometry(QRect(
@@ -123,6 +138,7 @@ class Interface(QWidget):
             QSize(Config.CELL_SIZE*2, Config.CELL_SIZE)
         ))
         self.depthLabel.setAlignment(Qt.AlignCenter)
+        self.depthLabel.setStyleSheet(Config.LABEL_CONF)
         
         self.depthText = QTextEdit(str(self.depth) ,self)
         self.depthText.setGeometry(QRect(
@@ -140,13 +156,15 @@ class Interface(QWidget):
             QSize(Config.CELL_SIZE, Config.CELL_SIZE)
         ))
         self.DFSLabel.setAlignment(Qt.AlignCenter)
+        self.DFSLabel.setStyleSheet(Config.LABEL_CONF)
         
         self.DFSDLLabel = QLabel("DFS (depth limit)", self)
         self.DFSDLLabel.setGeometry(QRect(
-            QPointF(Config.WINDOW_WIDTH/2 + (Config.CELL_SIZE/2), Config.CELL_SIZE).toPoint(), 
+            QPointF(Config.WINDOW_WIDTH/2 + (Config.CELL_SIZE/1.5), Config.CELL_SIZE).toPoint(), 
             QSize(Config.CELL_SIZE*4, Config.CELL_SIZE)
         ))
         self.DFSDLLabel.setAlignment(Qt.AlignCenter)
+        self.DFSDLLabel.setStyleSheet(Config.LABEL_CONF)
         
     def initButtons(self) -> None:
         self.solveButton = QPushButton(self)
@@ -155,29 +173,18 @@ class Interface(QWidget):
             QPointF(Config.WINDOW_WIDTH/2 - (Config.CELL_SIZE*1.5), Config.CELL_SIZE*11).toPoint(), 
             QSize(Config.CELL_SIZE*3, Config.CELL_SIZE)
         ))
-        self.solveButton.setStyleSheet(
-            "QPushButton:hover {" + \
-                "border: none;" + \
-                "outline: none;" + \
-            "}" + \
-            "QPushButton {" + \
-                "border-color:" + Colors.DARK_GREEN_STR + ";" + \
-                "border-style: solid;" + \
-                "border-radius: 2px;" + \
-                "border-width: 3px;" + \
-                "color: white;" + \
-                "text-align: center;" + \
-                "background-color: " + Colors.GREEN_STR + \
-            "}" + \
-            "QPushButton:pressed {" + \
-                "border: none;" + \
-                "outline: none;" + \
-                "color: white;" + \
-                "text-align: center;" + \
-                "background-color: " + Colors.DARK_GREEN_STR + \
-            "}"
-        )
+        self.solveButton.setStyleSheet(Config.BUTTON_CONF)
         self.solveButton.pressed.connect(self.solvePressedEvent)
+        
+        self.refreshButton = QPushButton(self)
+        self.refreshButton.setText("REFRESH")
+        self.refreshButton.setGeometry(QRect(
+            QPointF(Config.WINDOW_WIDTH/2 - (Config.CELL_SIZE*1.5), Config.CELL_SIZE*12).toPoint(), 
+            QSize(Config.CELL_SIZE*3, Config.CELL_SIZE)
+        ))
+        self.refreshButton.setStyleSheet(Config.BUTTON_CONF)
+        self.refreshButton.setDisabled(True)
+        self.refreshButton.pressed.connect(self.refreshPressedEvent)
         
         
         self.toggle = AnimatedToggle(self)
@@ -198,10 +205,48 @@ class Interface(QWidget):
         '''
         self.animeBoard.group = QSequentialAnimationGroup(self)
         if (int(self.toggle.handle_position) == 0):
-            while (self.animeBoard.chooseNext(DFSDL=0)):
-                pass
+            solutionExists = self.animeBoard.solve(DFSDL=0)
         else:
             self.depth = int(self.depthText.toPlainText())
-            while (self.animeBoard.chooseNext(DFSDL=1,depth=self.depth)):
-                pass
+            solutionExists = self.animeBoard.solve(DFSDL=1, depth=self.depth)
+        
+        if (solutionExists):
+            self.solveButton.setDisabled(True)
+            self.refreshButton.setDisabled(False)
+            self.animeBoard.group.start()
+            # self.animeBoard.group.currentAnimationChanged.connect(self.soundOn)
+        else:
+            self.solveButton.setDisabled(False)
+            QMessageBox.warning(self, "Solution ERROR", "There is no solution!")
+        
+    def refreshPressedEvent(self) -> None:
+        '''
+        Обработка нажатия на рефреш
+        '''
+        self.refreshButton.setDisabled(True)
+        self.animeBoard.makeAnime(True)
         self.animeBoard.group.start()
+        self.solveButton.setDisabled(False)
+        
+    def soundOn(self) -> None:
+        
+        # CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
+        # filename = os.path.join(CURRENT_DIR, "click1.wav")
+        # url = QUrl.fromLocalFile(filename)
+        # player = QMediaPlayer()
+        # player.setMedia(QMediaContent(url))
+        # QSound.play("D:\\Users\\vasab\\Documents\\Intro_AI\\lab1\\click1.wav")
+        # print(QSound.isAvailable())
+        # click.setLoops(len(self.animeBoard.path)-1)
+        # self.click.play()
+        QThreadPool.globalInstance().start(Run(self.click))
+        
+class Run(QRunnable):
+    def __init__(self, s: QSound) -> None:
+        super().__init__()
+        self.s = s
+    def run(self):
+        self.s.play()
+        
+            
+        
