@@ -1,3 +1,4 @@
+import collections
 from typing import List
 from openpyxl.styles import (
     PatternFill, Border, Side, 
@@ -72,6 +73,15 @@ def XLSXmake(path: List[Node], XLSXname: str) -> None:
                     cell.alignment = alignment
                     cell.font = font
             ws.cell(row=node.z_row+offset_row, column=node.z_col+offset_col, value='').fill = emptyCell
+            ws.merge_cells(
+                start_row=offset_row, end_row=offset_row+2, 
+                start_column=1, end_column=1
+            )
+            cell = ws.cell(row=offset_row, column=1, value=node.depth)
+            cell.alignment = alignment
+            
+            # for i in range(offset_row, offset_row+3):
+            #     cell.border = Border(top=sideThick, bottom=sideThick, left=sideThick, right=sideThick)
             z_prev_row = node.z_row
             z_prev_col = node.z_col
             offset_row += 4

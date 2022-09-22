@@ -79,13 +79,17 @@ class Interface(QWidget):
         start = [ [3, 6, 4],
                   [2, 5, 8],
                   [7, 1, 0] ]
+        # start = [ [0, 4, 3],
+        #           [6, 2, 1],
+        #           [7, 5, 8] ]
         self.startBoard = Board(self, QPoint(Config.CELL_SIZE, Config.CELL_SIZE*3), start)
         ends = list()
         ends.append( [ [2, 3, 4], [0, 6, 1], [7, 8, 5] ])
         ends.append( [ [0, 1, 2], [3, 4, 5], [6, 7, 8] ])
         ends.append( [ [3, 6, 4], [2, 5, 8], [7, 0, 1] ])
         ends.append( [ [3, 6, 4], [2, 5, 0], [7, 1, 8] ])
-        end = ends[0]
+        ends.append( [ [1, 2, 3], [4, 0, 5], [6, 7, 8] ])
+        end = ends[-1]
         self.endBoard = Board(
             self, 
             QPoint(Config.WINDOW_WIDTH - (Config.CELL_SIZE*4), Config.CELL_SIZE*3), 

@@ -14,7 +14,6 @@ from PyQt5.QtGui import QMouseEvent, QKeyEvent
 
 import numpy as np
 from cell import Cell
-from search import Search
 from shared import Colors
 
 from shared import Config
@@ -62,9 +61,18 @@ class Board:
         Создание корня дерева
         '''
         self.fringer = []
-        self.root = Node(state=state, i=2, j=2)
+        self.initZero(state)
+        self.root = Node(state=state, i=self.z_row, j=self.z_col)
         self.node = self.root
         self.setMatrix(state)
+        
+    def initZero(self, state) -> None:
+        for i in range (self.m):
+            for j in range (self.m):
+                if (state[i][j] == 0):
+                    self.z_row = i
+                    self.z_col = j
+                    return
 
     def setMatrix(self, state: List[List]) -> None:
         '''
