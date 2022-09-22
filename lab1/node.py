@@ -3,7 +3,6 @@ from collections import deque
 
 
 class Node:
-
     def __init__(self, state=None, parent=None, children=None, depth=0, i=None, j=None):
         self.state: [[int]] = [[0]*3]*3 if not state else state
         self.parent: Node = parent
@@ -11,6 +10,7 @@ class Node:
         self.depth: int = depth
         self.z_row: int = i
         self.z_col: int = j
+        self.visited = set()  # пройденные вершины графа
 
     @property
     def hashable_state(self):
@@ -51,7 +51,6 @@ def dfs(root: Node, target_state: [[int]]) -> [Node]:
     fringer = deque([root])
     traversed = set()
     node: Node
-
     while len(fringer) != 0:
         node = fringer.pop()
         if node.is_target(target_state):
@@ -64,17 +63,33 @@ def dfs(root: Node, target_state: [[int]]) -> [Node]:
             fringer.appendleft(state)
     else:
         return []
+    path = []
+    while node != root:
+        path.append(node)
+        node = node.parent
+    return [root] + list(reversed(path))
 
+
+def dfs_depth(root: Node, target_state: [[int]], depth) -> [Node]:
+    fringer = deque([root])
+    traversed = set()
+    node: Node
+    while len(fringer) != 0:
+        node = fringer.pop()
+        if node.depth <= depth:
+            if node.is_target(target_state):
+                break
+            if node.hashable_state in traversed:
+                continue
+            traversed.add(node.hashable_state)
+            next_states = node.next_states()
+            for state in next_states:
+                fringer.appendleft(state)
+    else:
+        return []
     path = []
     while node != root:
         path.append(node)
         node = node.parent
 
     return [root] + list(reversed(path))
-
-
-def dfs_depth(root: Node, target_state: [[int]]) -> [Node]:
-    """
-    For DimAss
-    """
-    pass

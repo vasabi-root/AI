@@ -26,6 +26,10 @@ class Colors:
     DARK_GREEN_STR = "#106B51"
     RED_STR = "#D00000"
     LIGHT_GREEN_STR = "#80DBC1"
+    
+    GREEN_xlsSTR = "FF50AB91"
+    DARK_GREEN_xlsSTR = "FF106B51"
+    RED_STR_xlsSTR = "FFD00000"
 
 class Config:
     '''

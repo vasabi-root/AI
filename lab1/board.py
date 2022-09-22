@@ -18,7 +18,9 @@ from search import Search
 from shared import Colors
 
 from shared import Config
-from node import Node, dfs
+from node import Node, dfs, dfs_depth
+
+from XLSXmaker import XLSXmake
 
 
 class Board:
@@ -54,7 +56,6 @@ class Board:
         self.brush.setColor(Colors.DARK_GREEN)
         self.group = QSequentialAnimationGroup(self.widget)
         self.path = []
-        self.click = QSound("D:\\Users\\vasab\\Documents\\Intro_AI\\lab1\\click1.wav")
     
     def makeRoot(self, state: List[List]) -> None:
         '''
@@ -87,8 +88,10 @@ class Board:
         if (len(self.path) == 0):
             if not DFSDL:
                 self.path = dfs(self.root, self.end)
+                XLSXmake(self.path, "DFS.xlsx")
             else:
-                self.path = dfs(self.root, self.end)
+                self.path = dfs_depth(self.root, self.end, depth)
+                XLSXmake(self.path, "DFS_DL.xlsx")
                 # self.node.DFSDLopen(self.fringer, depth)
                 # next = self.node.DFSDLnext(depth)
         if (len(self.path) > 0):
@@ -104,6 +107,7 @@ class Board:
         path = self.path.copy()
         if isReversed: 
             path.reverse()
+            self.path = []
         path.remove(path[0])
         self.group = QSequentialAnimationGroup(self.widget)
         for node in path:
@@ -135,25 +139,12 @@ class Board:
         self.qp.setRenderHints(QPainter.Antialiasing)
         
     def anime (self, row: int, col: int, isReversed: bool) -> None:
-        t = 50 if (isReversed) else 300
+        t = 50 if (isReversed) else 150
         x = self.topLeft.x() + Config.CELL_SIZE*col
         y = self.topLeft.y() + Config.CELL_SIZE*row
         self.anim = QPropertyAnimation(self.matrix[row][col], b"pos")
         self.anim.setEndValue(QPoint(x, y))
         self.anim.setDuration(t)
         self.anim.setEasingCurve(QEasingCurve.OutCubic)
-        # self.anim.stateChanged.connect(self.soundOn)
         self.group.addAnimation(self.anim)
-        # self.anim.start()
-
-    def soundOn(self, old, n) -> None:
-        if (old == QAbstractAnimation.Stopped):
-            QThreadPool.globalInstance().start(Run(self.click))
-
-class Run(QRunnable):
-    def __init__(self, s: QSound) -> None:
-        super().__init__()
-        self.s = s
-    def run(self):
-        self.s.play()
         
