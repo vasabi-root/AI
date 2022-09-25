@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import QWidget, QLabel, QPushButton, QTextEdit, QMessageBox
 from PyQt5.QtGui import QPainter, QBrush, QPen, QFont, QColor, QWheelEvent
 from PyQt5.QtCore import (
     Qt, QPoint, QPointF, QSize, QRect, 
-    QSequentialAnimationGroup, QRunnable, QThreadPool
+    QSequentialAnimationGroup, QRunnable, QPropertyAnimation
 )
 from PyQt5.QtMultimedia import QSound, QMediaPlayer, QMediaContent
 from PyQt5.QtGui import QMouseEvent, QKeyEvent
@@ -16,6 +16,7 @@ import numpy as np
 import os
 
 from board import Board
+from XLSXmaker import XLSXmake
 from shared import Config, Colors
 from animated_toggle import AnimatedToggle
 
@@ -76,19 +77,20 @@ class Interface(QWidget):
         self.qp.drawRect(-1, -1, w+1, h+1)
         
     def initBoards(self) -> None:
-        start = [ [3, 6, 4],
-                  [2, 5, 8],
-                  [7, 1, 0] ]
-        # start = [ [0, 4, 3],
-        #           [6, 2, 1],
-        #           [7, 5, 8] ]
+        # start = [ [3, 6, 4],
+        #           [2, 5, 8],
+        #           [7, 1, 0] ]
+        start = [ [0, 4, 3],
+                  [6, 2, 1],
+                  [7, 5, 8] ]
         self.startBoard = Board(self, QPoint(Config.CELL_SIZE, Config.CELL_SIZE*3), start)
         ends = list()
         ends.append( [ [2, 3, 4], [0, 6, 1], [7, 8, 5] ])
         ends.append( [ [0, 1, 2], [3, 4, 5], [6, 7, 8] ])
         ends.append( [ [3, 6, 4], [2, 5, 8], [7, 0, 1] ])
         ends.append( [ [3, 6, 4], [2, 5, 0], [7, 1, 8] ])
-        ends.append( [ [1, 2, 3], [4, 0, 5], [6, 7, 8] ])
+        ends.append( [ [1, 2, 3], [4, 0, 5], [6, 7, 8] ]) # depth = 19942
+        ends.append( [ [6, 4, 3], [5, 0, 1], [2, 7, 8] ]) # depth = 400
         end = ends[-1]
         self.endBoard = Board(
             self, 
@@ -215,26 +217,40 @@ class Interface(QWidget):
         
         if (solutionExists):
             self.solveButton.setDisabled(True)
-            self.animeBoard.group.start()
             self.refreshButton.setDisabled(False)
-            self.animeBoard.group.stateChanged.connect(self.saveMessage)
-            #self.animeBoard.group.currentAnimationChanged.connect(self.soundOn)
+            self.animeBoard.group.finished.connect(self.saveMessage)
+            self.animeBoard.group.start()
+            if (self.animeBoard.group.__class__ == QSequentialAnimationGroup):
+                self.animeBoard.group.currentAnimationChanged.connect(self.soundOn)
+            else:
+                self.animeBoard.group.stateChanged.connect(self.soundOn)
+            
         else:
             self.solveButton.setDisabled(False)
             QMessageBox.warning(self, "Solution ERROR", "There is no solution!")
+        # XLSXmake(self.path, "DFS_DL.xlsx")
         
     def refreshPressedEvent(self) -> None:
         '''
         Обработка нажатия на рефреш
         '''
         self.refreshButton.setDisabled(True)
-        self.animeBoard.makeAnime(True)
+        self.animeBoard.makeAnime(isReversed=True)
         self.animeBoard.group.start()
+        if (self.animeBoard.group.__class__ == QSequentialAnimationGroup):
+                self.animeBoard.group.currentAnimationChanged.connect(self.soundOn)
+        else:
+            self.animeBoard.group.stateChanged.connect(self.soundOn)
         self.solveButton.setDisabled(False)
         
     def saveMessage(self) -> None:
         QMessageBox.information(self, "Solution found", "Path was saved to the .xslx-file!")
-    
+        size = QSize(self.refreshButton.size())
+        self.crunchAnime = QPropertyAnimation(self.refreshButton, b"size")
+        self.crunchAnime.setEndValue(size)
+        self.crunchAnime.setDuration(10)
+        self.crunchAnime.start()
+
     def soundOn(self) -> None:
         self.click.play()
         # QThreadPool.globalInstance().start(Run(self.click))

@@ -85,6 +85,12 @@ class Config:
             color: black
         }}
     '''
+
+    @staticmethod
+    def index2d(myList: List[List], v) -> int:
+        for i, x in enumerate(myList):
+            if v in x:
+                return (i, x.index(v))
     
     @staticmethod
     def getHash(matrix: List[List]) -> int:

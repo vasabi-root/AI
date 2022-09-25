@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QGridLayout, qApp
 from PyQt5.QtGui import QPainter, QBrush, QPen, QFont, QColor, QWheelEvent
 from PyQt5.QtCore import ( 
     Qt, QPoint, QRect, QSize, QPropertyAnimation, QThreadPool,
-    QEasingCurve, QSequentialAnimationGroup, QRunnable, QAbstractAnimation
+    QEasingCurve, QSequentialAnimationGroup, QParallelAnimationGroup
 )
 from PyQt5.QtMultimedia import QSound
 from PyQt5.QtCore import QRunnable
@@ -93,17 +93,13 @@ class Board:
         '''
         Переход к следующей вершине (фронт)
         '''
-        if (len(self.path) == 0):
-            if not DFSDL:
-                self.path = dfs(self.root, self.end)
-                XLSXmake(self.path, "DFS.xlsx")
-            else:
-                self.path = dfs_depth(self.root, self.end, depth)
-                XLSXmake(self.path, "DFS_DL.xlsx")
-                # self.node.DFSDLopen(self.fringer, depth)
-                # next = self.node.DFSDLnext(depth)
+        if not DFSDL:
+            self.path = dfs(self.root, self.end)
+            XLSXmake(self.path, "DFS.xlsx")
+        else:
+            self.path = dfs_depth(self.root, self.end, depth)
+            XLSXmake(self.path, "DFS_DL.xlsx")
         if (len(self.path) > 0):
-            # Текущее положение пустой клетки
             self.makeAnime()
             return True # решение существует
         return False    # решения нет
@@ -112,27 +108,29 @@ class Board:
     #     pass
         
     def makeAnime(self, isReversed: bool=False) -> None:
-        path = self.path.copy()
-        if isReversed: 
-            path.reverse()
-            self.path = []
-        path.remove(path[0])
-        self.group = QSequentialAnimationGroup(self.widget)
-        for node in path:
-            r1 = self.node.z_row 
-            c1 = self.node.z_col
-            
-            r2 = node.z_row
-            c2 = node.z_col
-            
-            self.node = node
-            self.matrix[r1][c1], self.matrix[r2][c2] = self.matrix[r2][c2], self.matrix[r1][c1]
-            self.anime(r1, c1, isReversed)
+        if (len(self.path) <= 400):
+            path = self.path.copy()
+            if isReversed: 
+                path.reverse()
+                self.path = []
+            path.remove(path[0])
+            self.group = QSequentialAnimationGroup(self.widget)
+            for node in path:
+                r1 = self.node.z_row 
+                c1 = self.node.z_col
+                
+                r2 = node.z_row
+                c2 = node.z_col
+                
+                self.node = node
+                self.matrix[r1][c1], self.matrix[r2][c2] = self.matrix[r2][c2], self.matrix[r1][c1]
+                self.animeStep(r1, c1, isReversed)
+        else:
+            self.animeFull(isReversed)
     
     def draw(self) -> None:
         self.initPainter()
         self.qp.drawRect(self.rect)
-            
         self.qp.end()
         
     # def getState(self) -> int
@@ -146,7 +144,7 @@ class Board:
         self.qp.setBrush(self.brush)
         self.qp.setRenderHints(QPainter.Antialiasing)
         
-    def anime (self, row: int, col: int, isReversed: bool) -> None:
+    def animeStep (self, row: int, col: int, isReversed: bool) -> None:
         t = 50 if (isReversed) else 150
         x = self.topLeft.x() + Config.CELL_SIZE*col
         y = self.topLeft.y() + Config.CELL_SIZE*row
@@ -155,4 +153,29 @@ class Board:
         self.anim.setDuration(t)
         self.anim.setEasingCurve(QEasingCurve.OutCubic)
         self.group.addAnimation(self.anim)
+
+    def animeFull (self, isReversed=False) -> None:
+        start = self.start
+        end = self.end
+        if isReversed:
+            start, end = end, start
+        self.group = QParallelAnimationGroup(self.widget)
+        matrix = []
+        for row in range(self.m):
+            matrix.append([])
+            for col in range(self.m):
+                (r, c) = Config.index2d(start, end[row][col])
+                matrix[row].append(self.matrix[r][c])
+                if (self.matrix[row][col] != 0):
+                    (r, c) = Config.index2d(end, start[row][col])
+                    x = self.topLeft.x() + Config.CELL_SIZE*c
+                    y = self.topLeft.y() + Config.CELL_SIZE*r
+
+                    self.anim = QPropertyAnimation(self.matrix[row][col], b"pos")
+                    self.anim.setEndValue(QPoint(x, y))
+                    self.anim.setDuration(150)
+                    self.anim.setEasingCurve(QEasingCurve.OutCubic)
+                    self.group.addAnimation(self.anim)
+        self.matrix = matrix
         
+
