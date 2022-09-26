@@ -10,7 +10,8 @@ class Node:
         self.depth: int = depth
         self.z_row: int = i
         self.z_col: int = j
-        self.visited = set()  # пройденные вершины графа
+        # self.traversed: [Node] = set() # пройденные
+
 
     @property
     def hashable_state(self):
@@ -47,7 +48,7 @@ class Node:
         return self.state == target_state
 
 
-def dfs(root: Node, target_state: [[int]]) -> [Node]:
+def dfs(root: Node, target_state: [[int]]) -> ([[Node]], int, int):
     fringer = deque([root])
     traversed = set()
     node: Node
@@ -60,18 +61,17 @@ def dfs(root: Node, target_state: [[int]]) -> [Node]:
         traversed.add(node.hashable_state)
         next_states = node.next_states()
         for state in next_states:
-            fringer.appendleft(state)
             fringer.append(state)
     else:
-        return []
+        return ([], 0, 0)
     path = []
     while node != root:
         path.append(node)
         node = node.parent
-    return [root] + list(reversed(path))
+    return ([root] + list(reversed(path)), len(traversed)+len(fringer), len(traversed))
 
 
-def dfs_depth(root: Node, target_state: [[int]], depth) -> [Node]:
+def dfs_depth(root: Node, target_state: [[int]], depth) -> ([[Node]], int, int):
     fringer = deque([root])
     traversed = set()
     node: Node
@@ -87,10 +87,9 @@ def dfs_depth(root: Node, target_state: [[int]], depth) -> [Node]:
             for state in next_states:
                 fringer.append(state)
     else:
-        return []
+        return ([], 0, 0)
     path = []
     while node != root:
         path.append(node)
         node = node.parent
-
-    return [root] + list(reversed(path))
+    return ([root] + list(reversed(path)), len(traversed)+len(fringer), len(traversed))

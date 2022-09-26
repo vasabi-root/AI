@@ -89,6 +89,7 @@ class Interface(QWidget):
         ends.append( [ [0, 1, 2], [3, 4, 5], [6, 7, 8] ])
         ends.append( [ [3, 6, 4], [2, 5, 8], [7, 0, 1] ])
         ends.append( [ [3, 6, 4], [2, 5, 0], [7, 1, 8] ])
+        ends.append(start) # depth = 0
         ends.append( [ [1, 2, 3], [4, 0, 5], [6, 7, 8] ]) # depth = 19942
         ends.append( [ [6, 4, 3], [5, 0, 1], [2, 7, 8] ]) # depth = 400
         end = ends[-1]

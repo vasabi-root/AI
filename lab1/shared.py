@@ -46,6 +46,9 @@ class Config:
     R_RIGHT_Y = 100
     
     CELL_SIZE = 30
+
+    SLOW_ANIME = 300 # ms
+    FAST_ANIME = 50  # ms
     
     BUTTON_CONF = \
     f'''

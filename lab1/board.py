@@ -28,14 +28,16 @@ class Board:
     '''
     
     widget: QWidget 
-    matrix: List[List[Cell]]    # матрица ячеек (для фронта)
-    root: Node                  # корень дерева решений
-    node: Node                  # текущее состояние (для алгоритма)
-    rect: QRect                 # полотно под ячейками
-    topLeft: QPoint             # позици доски
-    fringer: List[List[Node]]   # кайма (нераскрытые узлы дерева)
-    m: int                      # размерность доски
-    path: List[List[Node]]      # путь от начала в конец (если существует)
+    matrix: [[Cell]]                # матрица ячеек (для фронта)
+    root: Node                      # корень дерева решений
+    node: Node                      # текущее состояние (для алгоритма)
+    rect: QRect                     # полотно под ячейками
+    topLeft: QPoint                 # позици доски
+    fringer: [[Node]]               # кайма (нераскрытые узлы дерева)
+    m: int                          # размерность доски
+    solution: ([[Node]], int, int)  # [0]: путь от начала в конец (если существует) 
+                                    # [1]: емкостная сложность
+                                    # [2]: временная сложность
     
     
     def __init__(self, widget: QWidget, topLeft: QPoint, start: List[List[int]], end: List[List[int]]=None):
@@ -54,7 +56,7 @@ class Board:
         self.brush.setStyle(Qt.SolidPattern)
         self.brush.setColor(Colors.DARK_GREEN)
         self.group = QSequentialAnimationGroup(self.widget)
-        self.path = []
+        self.solution = ([], 0, 0)
     
     def makeRoot(self, state: List[List]) -> None:
         '''
@@ -94,12 +96,12 @@ class Board:
         Переход к следующей вершине (фронт)
         '''
         if not DFSDL:
-            self.path = dfs(self.root, self.end)
-            XLSXmake(self.path, "DFS.xlsx")
+            self.solution = dfs(self.root, self.end)
+            XLSXmake(self.solution, "DFS.xlsx")
         else:
-            self.path = dfs_depth(self.root, self.end, depth)
-            XLSXmake(self.path, "DFS_DL.xlsx")
-        if (len(self.path) > 0):
+            self.solution = dfs_depth(self.root, self.end, depth)
+            XLSXmake(self.solution, "DFS_DL.xlsx")
+        if (len(self.solution[0]) > 0):
             self.makeAnime()
             return True # решение существует
         return False    # решения нет
@@ -108,11 +110,11 @@ class Board:
     #     pass
         
     def makeAnime(self, isReversed: bool=False) -> None:
-        if (len(self.path) <= 400):
-            path = self.path.copy()
+        if (len(self.solution[0]) <= 10000 / Config.SLOW_ANIME):
+            path = self.solution[0].copy()
             if isReversed: 
                 path.reverse()
-                self.path = []
+                self.solution = ([], 0, 0)
             path.remove(path[0])
             self.group = QSequentialAnimationGroup(self.widget)
             for node in path:
@@ -145,7 +147,7 @@ class Board:
         self.qp.setRenderHints(QPainter.Antialiasing)
         
     def animeStep (self, row: int, col: int, isReversed: bool) -> None:
-        t = 50 if (isReversed) else 150
+        t = Config.FAST_ANIME if (isReversed) else Config.SLOW_ANIME
         x = self.topLeft.x() + Config.CELL_SIZE*col
         y = self.topLeft.y() + Config.CELL_SIZE*row
         self.anim = QPropertyAnimation(self.matrix[row][col], b"pos")
@@ -173,7 +175,7 @@ class Board:
 
                     self.anim = QPropertyAnimation(self.matrix[row][col], b"pos")
                     self.anim.setEndValue(QPoint(x, y))
-                    self.anim.setDuration(150)
+                    self.anim.setDuration(Config.SLOW_ANIME)
                     self.anim.setEasingCurve(QEasingCurve.OutCubic)
                     self.group.addAnimation(self.anim)
         self.matrix = matrix

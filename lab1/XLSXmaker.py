@@ -2,14 +2,18 @@ import collections
 from typing import List
 from openpyxl.styles import (
     PatternFill, Border, Side, 
-    Alignment, Font, GradientFill, Color, colors
+    Alignment, Font
 )
 from openpyxl import Workbook
 
 from shared import Colors, Config
 from node import Node
 
-def XLSXmake(path: List[Node], XLSXname: str) -> None:
+def XLSXmake(solution: ([Node], int, int), XLSXname: str) -> None:
+    path = solution[0]
+    treeLen = solution[1]
+    stepsLen = solution[2]
+
     wb = Workbook()
     ws = wb.active
     
@@ -47,6 +51,20 @@ def XLSXmake(path: List[Node], XLSXname: str) -> None:
         
         for row in range (2, len(path)*4 + 2):
             ws.row_dimensions[row].height = Config.CELL_SIZE * 0.6
+
+        s = 'Емкостная сложность'
+        ws.column_dimensions['F'].width = len(s)+1
+        ws['F1'].value = s
+        ws['F2'].value = treeLen
+        ws['F2'].alignment = alignment
+
+        s = 'Временная сложность'
+        ws.column_dimensions['G'].width = len(s)+1
+        ws['G1'].value = s
+        ws['G2'].value = stepsLen
+        ws['G2'].alignment = alignment
+
+
             
         m = len(path[0].state)
         
@@ -79,9 +97,7 @@ def XLSXmake(path: List[Node], XLSXname: str) -> None:
             )
             cell = ws.cell(row=offset_row, column=1, value=node.depth)
             cell.alignment = alignment
-            
-            # for i in range(offset_row, offset_row+3):
-            #     cell.border = Border(top=sideThick, bottom=sideThick, left=sideThick, right=sideThick)
+
             z_prev_row = node.z_row
             z_prev_col = node.z_col
             offset_row += 4
