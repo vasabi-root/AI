@@ -9,7 +9,7 @@ from openpyxl import Workbook
 from shared import Colors, Config
 from node import Node
 
-def XLSXmake(solution: ([Node], int, int), XLSXname: str) -> None:
+def XLSXmake(solution: ([Node], int, int), XLSXname: str) -> bool:
     path = solution[0]
     treeLen = solution[1]
     stepsLen = solution[2]
@@ -105,7 +105,12 @@ def XLSXmake(solution: ([Node], int, int), XLSXname: str) -> None:
         ws.column_dimensions['B'].width = 10
         ws['B1'].value = 'NO SOLUTION!'
         # сохраняем и смотрим что получилось
-    wb.save(XLSXname)     
+    try:
+        wb.save(XLSXname)     
+    except(PermissionError):
+        return False
+    
+    return True
     
     
     

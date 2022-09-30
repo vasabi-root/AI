@@ -58,8 +58,8 @@ def dfs(root: Node, target_state: [[int]]) -> ([[Node]], int, int):
             break
         if node.hashable_state in traversed:
             continue
-        traversed.add(node.hashable_state)
         next_states = node.next_states()
+        traversed.add(node.hashable_state)
         for state in next_states:
             fringer.append(state)
     else:

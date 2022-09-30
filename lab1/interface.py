@@ -79,18 +79,19 @@ class Interface(QWidget):
     def initBoards(self) -> None:
         # start = [ [3, 6, 4],
         #           [2, 5, 8],
-        #           [7, 1, 0] ]
+        #           [7, 1, 0] ] # variant
         start = [ [0, 4, 3],
                   [6, 2, 1],
                   [7, 5, 8] ]
         self.startBoard = Board(self, QPoint(Config.CELL_SIZE, Config.CELL_SIZE*3), start)
         ends = list()
         ends.append( [ [2, 3, 4], [0, 6, 1], [7, 8, 5] ])
-        ends.append( [ [0, 1, 2], [3, 4, 5], [6, 7, 8] ])
         ends.append( [ [3, 6, 4], [2, 5, 8], [7, 0, 1] ])
         ends.append( [ [3, 6, 4], [2, 5, 0], [7, 1, 8] ])
         ends.append(start) # depth = 0
-        ends.append( [ [1, 2, 3], [4, 0, 5], [6, 7, 8] ]) # depth = 19942
+        ends.append( [ [1, 2, 3], [4, 0, 5], [6, 7, 8] ]) # depth =  19942
+        ends.append( [ [0, 1, 2], [3, 4, 5], [6, 7, 8] ]) # variant
+        ends.append( [ [0, 2, 1], [3, 4, 5], [6, 7, 8] ]) # variant 1,2 = 2,1
         ends.append( [ [6, 4, 3], [5, 0, 1], [2, 7, 8] ]) # depth = 400
         end = ends[-1]
         self.endBoard = Board(
@@ -215,11 +216,22 @@ class Interface(QWidget):
         else:
             self.depth = int(self.depthText.toPlainText())
             solutionExists = self.animeBoard.solve(DFSDL=1, depth=self.depth)
+            
+        if (len(self.animeBoard.solution[0]) <= Config.MAX_XLSX_PATH):
+            saveFunc = self.saveMessage
+            if (int(self.toggle.handle_position) == 0):
+                if (not XLSXmake(self.animeBoard.solution, "DFS.xlsx")):
+                    saveFunc = self.saveErrorMessage
+            else:
+                if (not XLSXmake(self.animeBoard.solution, "DFS_DL_" + str(self.depth) + ".xlsx")):
+                    saveFunc = self.saveErrorMessage
+            self.animeBoard.group.finished.connect(saveFunc)
+        else:
+            self.animeBoard.group.finished.connect(self.largePathMessage)
         
         if (solutionExists):
             self.solveButton.setDisabled(True)
             self.refreshButton.setDisabled(False)
-            self.animeBoard.group.finished.connect(self.saveMessage)
             self.animeBoard.group.start()
             if (self.animeBoard.group.__class__ == QSequentialAnimationGroup):
                 self.animeBoard.group.currentAnimationChanged.connect(self.soundOn)
@@ -229,7 +241,6 @@ class Interface(QWidget):
         else:
             self.solveButton.setDisabled(False)
             QMessageBox.warning(self, "Solution ERROR", "There is no solution!")
-        # XLSXmake(self.path, "DFS_DL.xlsx")
         
     def refreshPressedEvent(self) -> None:
         '''
@@ -239,18 +250,35 @@ class Interface(QWidget):
         self.animeBoard.makeAnime(isReversed=True)
         self.animeBoard.group.start()
         if (self.animeBoard.group.__class__ == QSequentialAnimationGroup):
-                self.animeBoard.group.currentAnimationChanged.connect(self.soundOn)
+            self.animeBoard.group.currentAnimationChanged.connect(self.soundOn)
         else:
             self.animeBoard.group.stateChanged.connect(self.soundOn)
         self.solveButton.setDisabled(False)
         
-    def saveMessage(self) -> None:
-        QMessageBox.information(self, "Solution found", "Path was saved to the .xslx-file!")
+    def crunchAnimeStart(self) -> None:
         size = QSize(self.refreshButton.size())
         self.crunchAnime = QPropertyAnimation(self.refreshButton, b"size")
         self.crunchAnime.setEndValue(size)
         self.crunchAnime.setDuration(10)
-        self.crunchAnime.start()
+        self.crunchAnime.start()    
+    
+    def saveMessage(self) -> None:
+        QMessageBox.information(self, "Solution found", "Path was saved to the .xslx-file!")
+        self.crunchAnimeStart()
+        
+    def saveErrorMessage(self) -> None:
+        if (int(self.toggle.handle_position) == 0):
+            QMessageBox.warning(self, "Save ERROR", "Please, close the file: "+"'DFS.xlsx'" + " and try again")
+        else:
+            QMessageBox.warning(self, "Save ERROR", "Please, close the file: "+"'DFS_DL_" + str(self.depth) + ".xlsx'" + " and try again")
+        self.crunchAnimeStart()
+        
+    def largePathMessage(self) -> None:
+        QMessageBox.warning(self, "Solution found", 
+        f'Path too large!\
+        \n capacitive difficulty: {self.animeBoard.solution[1]}\
+        \n timing difficulty: {self.animeBoard.solution[2]}')
+        self.crunchAnimeStart()
 
     def soundOn(self) -> None:
         self.click.play()

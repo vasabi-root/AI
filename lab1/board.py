@@ -97,10 +97,10 @@ class Board:
         '''
         if not DFSDL:
             self.solution = dfs(self.root, self.end)
-            XLSXmake(self.solution, "DFS.xlsx")
+            # XLSXmake(self.solution, "DFS.xlsx")
         else:
             self.solution = dfs_depth(self.root, self.end, depth)
-            XLSXmake(self.solution, "DFS_DL.xlsx")
+            # XLSXmake(self.solution, "DFS_DL.xlsx")
         if (len(self.solution[0]) > 0):
             self.makeAnime()
             return True # решение существует

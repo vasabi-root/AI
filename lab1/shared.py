@@ -50,6 +50,8 @@ class Config:
     SLOW_ANIME = 300 # ms
     FAST_ANIME = 50  # ms
     
+    MAX_XLSX_PATH = 2000
+    
     BUTTON_CONF = \
     f'''
         QPushButton:hover {{
