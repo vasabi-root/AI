@@ -11,6 +11,7 @@ from node import Node
 
 def XLSXmake(solution: ([Node], int, int), XLSXname: str) -> bool:
     path = solution[0]
+    pathLen = len(solution[0])
     treeLen = solution[1]
     stepsLen = solution[2]
 
@@ -63,6 +64,13 @@ def XLSXmake(solution: ([Node], int, int), XLSXname: str) -> bool:
         ws['G1'].value = s
         ws['G2'].value = stepsLen
         ws['G2'].alignment = alignment
+
+        s = 'Длина пути'
+        ws.column_dimensions['H'].width = len(s)+1
+        ws['H1'].value = s
+        ws['H2'].value = pathLen
+        ws['H2'].alignment = alignment
+
 
 
             

@@ -276,8 +276,9 @@ class Interface(QWidget):
     def largePathMessage(self) -> None:
         QMessageBox.warning(self, "Solution found", 
         f'Path too large!\
+        \n path len:              {self.animeBoard.solution[0]}\
         \n capacitive difficulty: {self.animeBoard.solution[1]}\
-        \n timing difficulty: {self.animeBoard.solution[2]}')
+        \n timing difficulty:     {self.animeBoard.solution[2]}')
         self.crunchAnimeStart()
 
     def soundOn(self) -> None:

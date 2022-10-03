@@ -47,7 +47,7 @@ class Config:
     
     CELL_SIZE = 30
 
-    SLOW_ANIME = 300 # ms
+    SLOW_ANIME = 200 # ms
     FAST_ANIME = 50  # ms
     
     MAX_XLSX_PATH = 2000

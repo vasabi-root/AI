@@ -63,12 +63,12 @@ def dfs(root: Node, target_state: [[int]]) -> ([[Node]], int, int):
         for state in next_states:
             fringer.append(state)
     else:
-        return ([], 0, 0)
+        return [], 0, 0
     path = []
     while node != root:
         path.append(node)
         node = node.parent
-    return ([root] + list(reversed(path)), len(traversed)+len(fringer), len(traversed))
+    return [root] + list(reversed(path)), len(traversed)+len(fringer), len(traversed)
 
 
 def dfs_depth(root: Node, target_state: [[int]], depth) -> ([[Node]], int, int):
@@ -87,9 +87,9 @@ def dfs_depth(root: Node, target_state: [[int]], depth) -> ([[Node]], int, int):
             for state in next_states:
                 fringer.append(state)
     else:
-        return ([], 0, 0)
+        return [], 0, 0
     path = []
     while node != root:
         path.append(node)
         node = node.parent
-    return ([root] + list(reversed(path)), len(traversed)+len(fringer), len(traversed))
+    return [root] + list(reversed(path)), len(traversed)+len(fringer), len(traversed)
