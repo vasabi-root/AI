@@ -60,7 +60,11 @@ def manhattan_distance(current_state: List[List[int]], target_state: List[List[i
     """
     h(n)
     """
-    pass
+    result = 0
+    for i in range(len(current_state)):
+        for j in range(len(current_state[i])):
+            result = result + abs(current_state[i][j]-target_state[i][j])
+    return result
 
 
 def fnnm_distance(current_state: List[List[int]], target_state: List[List[int]]) -> int:
@@ -69,7 +73,12 @@ def fnnm_distance(current_state: List[List[int]], target_state: List[List[int]])
     P.S.
     FNNM - Fishki ne na mestah
     """
-    pass
+    result = 0
+    for i in range(len(current_state)):
+        for j in range(len(current_state[i])):
+            if current_state[i][j] != target_state[i][j]:
+                result = result + 1
+    return result
 
 
 def cost_criterion(current_state: List[List[int]], target_state: List[List[int]]) -> int:
