@@ -27,8 +27,8 @@ class Node:
         if self.z_col + 1 <= 2:
             yield self.z_row, self.z_col + 1
 
-    def next_states(self) -> list:
-        states: [Node] = []
+    def get_children(self) -> list:
+        children: [Node] = []
         for x, y in self.available_moves():
             state = copy.deepcopy(self.state)
             state[x][y], state[self.z_row][self.z_col] = state[self.z_row][self.z_col], state[x][y]
@@ -39,10 +39,10 @@ class Node:
                 i=x,
                 j=y
             )
-            states.append(child)
+            children.append(child)
             self.children.append(child)
 
-        return states
+        return children
 
     def is_target(self, target_state: List[List[int]]) -> bool:
         return self.state == target_state
@@ -80,13 +80,11 @@ def fnnm_distance(current_state: List[List[int]], target_state: List[List[int]])
                 result = result + 1
     return result
 
-
-def cost_criterion(current_state: List[List[int]], target_state: List[List[int]]) -> int:
+def cost_criterion(node:Node) -> int:
     """
     g(n) для A*
     """
-    pass
-
+    return node.depth
 
 def solve_func(root: Node, target_state: List[List[int]], is_astar: bool, is_manh: bool) -> Tuple[List[Node], int, int]:
     """
@@ -100,7 +98,7 @@ def solve_func(root: Node, target_state: List[List[int]], is_astar: bool, is_man
     fringer: List[Tuple[int, Node]] = [(0, root)]  # Очередь с приоритетом
     traversed = set()
     h = manhattan_distance if is_manh else fnnm_distance
-    g = cost_criterion if is_astar else lambda x, y: 0
+    g = cost_criterion if is_astar else lambda x: 0
     node: Node
     while len(fringer) != 0:
         _, node = heapq.heappop(fringer)  # Выбирает с наименьшей стоимостью
@@ -108,53 +106,53 @@ def solve_func(root: Node, target_state: List[List[int]], is_astar: bool, is_man
             break
         if node.hashable_state in traversed:
             continue
-        next_states = node.next_states()
+        children = node.get_children()
         traversed.add(node.hashable_state)
-        for state in next_states:
-            cost = h(node.state, target_state) + g(node.state, target_state)
-            heapq.heappush(fringer, (cost, state))
+        for child in children:
+            cost = h(node.state, target_state) + g(node)
+            heapq.heappush(fringer, (cost, child))
     else:
         return [], 0, 0
     path = _restore_path(root, node)
     return path, len(traversed) + len(fringer), len(traversed)
 
 
-def dfs(root: Node, target_state: [[int]]) -> ([[Node]], int, int):
-    fringer = deque([root])
-    traversed = set()
-    node: Node
-    while len(fringer) != 0:
-        node = fringer.pop()
-        if node.is_target(target_state):
-            break
-        if node.hashable_state in traversed:
-            continue
-        next_states = node.next_states()
-        traversed.add(node.hashable_state)
-        for state in next_states:
-            fringer.append(state)
-    else:
-        return [], 0, 0
-    path = _restore_path(root, node)
-    return path, len(traversed) + len(fringer), len(traversed)
+# def dfs(root: Node, target_state: [[int]]) -> ([[Node]], int, int):
+#     fringer = deque([root])
+#     traversed = set()
+#     node: Node
+#     while len(fringer) != 0:
+#         node = fringer.pop()
+#         if node.is_target(target_state):
+#             break
+#         if node.hashable_state in traversed:
+#             continue
+#         next_nodes = node.next_nodes()
+#         traversed.add(node.hashable_state)
+#         for state in next_nodes:
+#             fringer.append(state)
+#     else:
+#         return [], 0, 0
+#     path = _restore_path(root, node)
+#     return path, len(traversed) + len(fringer), len(traversed)
 
 
-def dfs_depth(root: Node, target_state: [[int]], depth) -> ([[Node]], int, int):
-    fringer = deque([root])
-    traversed = set()
-    node: Node
-    while len(fringer) != 0:
-        node = fringer.pop()
-        if node.depth <= depth:
-            if node.is_target(target_state):
-                break
-            if node.hashable_state in traversed:
-                continue
-            traversed.add(node.hashable_state)
-            next_states = node.next_states()
-            for state in next_states:
-                fringer.append(state)
-    else:
-        return [], 0, 0
-    path = _restore_path(root, node)
-    return path, len(traversed) + len(fringer), len(traversed)
+# def dfs_depth(root: Node, target_state: [[int]], depth) -> ([[Node]], int, int):
+#     fringer = deque([root])
+#     traversed = set()
+#     node: Node
+#     while len(fringer) != 0:
+#         node = fringer.pop()
+#         if node.depth <= depth:
+#             if node.is_target(target_state):
+#                 break
+#             if node.hashable_state in traversed:
+#                 continue
+#             traversed.add(node.hashable_state)
+#             next_nodes = node.next_nodes()
+#             for state in next_nodes:
+#                 fringer.append(state)
+#     else:
+#         return [], 0, 0
+#     path = _restore_path(root, node)
+#     return path, len(traversed) + len(fringer), len(traversed)
