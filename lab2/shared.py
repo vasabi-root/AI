@@ -3,6 +3,10 @@ from typing import List
 from PyQt5.QtGui import QColor
 from PyQt5.QtCore import Qt
 
+import heapq
+from dataclasses import dataclass, field
+from typing import Any
+
 # class  Swap (enum):
 #     TL
 
@@ -18,6 +22,7 @@ class Colors:
     
     GREY = QColor("#E0E0E0")
     RED = QColor("#D00000")
+    DARK_RED = QColor("#500000")
     RED_A120 = QColor(255, 0, 0, 120)
     BLACK = Qt.black
     BLACK_A100 = QColor(0, 0, 0, 100)

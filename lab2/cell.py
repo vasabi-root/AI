@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QWidget, QPushButton, QStyleOptionButton
-from PyQt5.QtCore import QPropertyAnimation, QPoint, QRect, QSize
+from PyQt5.QtCore import QPropertyAnimation, QPoint, QRect, QSize, pyqtSignal
 
 from shared import Colors, Config
 
@@ -19,13 +19,18 @@ from shared import Colors, Config
 
 class Cell(QPushButton):
     
-    num: int # значение фишки
+    num: int # значение фишк
+    cellClicked = pyqtSignal(int, int, int)
     
-    def __init__(self, widget: QWidget, xpos: int=50, ypos: int=50, num: int=0, isMoved: bool=False):
+    def __init__(self, widget: QWidget, xpos: int=50, ypos: int=50, num: int=0):
         super().__init__(widget)
+        self.h = 0
+        self.g = 0
+        self.depth = 0
+        self.clicked.connect(lambda _: self.cellClicked.emit(self.h, self.g, self.depth))
         self.setGeometry(QRect(QPoint(xpos, ypos), QSize(Config.CELL_SIZE, Config.CELL_SIZE)))
         self.setNum(num)
-        self.setIsMoved(isMoved)
+        self.setDefault()
         
     def getDefStyle(self) -> str:
         return  "border-color:" + Colors.DARK_GREEN_STR + ";" + \
@@ -42,16 +47,27 @@ class Cell(QPushButton):
         self.num = num
         self.setText(str(self.num))
     
-    def setIsMoved (self, isMoved: bool) -> None:
+    def setDefault(self) -> None:
         '''
         Была ли ячейка сдвинута? Если да, то меняем цвет ячейки на красный
         '''
-        self.isMoved = isMoved
         defStyle = self.getDefStyle()
-        if (not self.isMoved):
-            self.setStyleSheet(defStyle + "background-color: " + Colors.GREEN_STR)
-        else:
-            self.setStyleSheet(defStyle + "background-color: " + Colors.RED_STR)
+        self.setStyleSheet(defStyle + "background-color: " + Colors.GREEN_STR)
+            
+    def setCost (self, cost: int) -> None:
+        '''
+        Была ли ячейка сдвинута? Если да, то меняем цвет ячейки на красный
+        '''
+        self.isMoved = False
+        
+        defStyle = self.getDefStyle()
+        r = hex(235 - cost*40)[2:3]
+        g = hex(195 - cost*40)[2:3]
+        b = hex(0)[2:3]
+        
+        c = '#' + r+g+b
+        
+        self.setStyleSheet(defStyle + "background-color: " + c)
         
     def anime(self) -> None:
         self.anim = QPropertyAnimation(self, b"pos")
