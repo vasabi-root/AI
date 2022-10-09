@@ -246,7 +246,7 @@ class Interface(QWidget):
                 if (not XLSXmake(self.animeBoard.solution, "GS.xlsx")):
                     saveFunc = self.saveErrorMessage
             else:
-                if (not XLSXmake(self.animeBoard.solution, "'A_star.xlsx'")):
+                if (not XLSXmake(self.animeBoard.solution, "A_star.xlsx")):
                     saveFunc = self.saveErrorMessage
             self.animeBoard.group.finished.connect(saveFunc)
         else:

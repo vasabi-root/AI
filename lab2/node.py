@@ -2,6 +2,8 @@ import copy
 from typing import List, Tuple
 from collections import deque
 import heapq
+from dataclasses import dataclass, field
+from typing import Any
 
 
 class Node:
@@ -48,6 +50,12 @@ class Node:
         return self.state == target_state
 
 
+@dataclass(order=True)
+class PrioritizedItem:
+    priority: int
+    node: Any = field(compare=False)
+
+
 def _restore_path(root: Node, node: Node) -> List[Node]:
     path: List[Node] = []
     while node != root:
@@ -63,7 +71,7 @@ def manhattan_distance(current_state: List[List[int]], target_state: List[List[i
     result = 0
     for i in range(len(current_state)):
         for j in range(len(current_state[i])):
-            result = result + abs(current_state[i][j]-target_state[i][j])
+            result = result + abs(current_state[i][j] - target_state[i][j])
     return result
 
 
@@ -80,11 +88,13 @@ def fnnm_distance(current_state: List[List[int]], target_state: List[List[int]])
                 result = result + 1
     return result
 
-def cost_criterion(node:Node) -> int:
+
+def cost_criterion(node: Node) -> int:
     """
     g(n) для A*
     """
     return node.depth
+
 
 def solve_func(root: Node, target_state: List[List[int]], is_astar: bool, is_manh: bool) -> Tuple[List[Node], int, int]:
     """
@@ -95,13 +105,15 @@ def solve_func(root: Node, target_state: List[List[int]], is_astar: bool, is_man
         len(traversed)
     )
     """
-    fringer: List[Tuple[int, Node]] = [(0, root)]  # Очередь с приоритетом
+    fringer: List[PrioritizedItem] = [PrioritizedItem(0, root)]  # Очередь с приоритетом
     traversed = set()
     h = manhattan_distance if is_manh else fnnm_distance
     g = cost_criterion if is_astar else lambda x: 0
     node: Node
+    heapq.heapify(fringer)
     while len(fringer) != 0:
-        _, node = heapq.heappop(fringer)  # Выбирает с наименьшей стоимостью
+        item = heapq.heappop(fringer)  # Выбирает с наименьшей стоимостью
+        node = item.node
         if node.is_target(target_state):
             break
         if node.hashable_state in traversed:
@@ -110,12 +122,11 @@ def solve_func(root: Node, target_state: List[List[int]], is_astar: bool, is_man
         traversed.add(node.hashable_state)
         for child in children:
             cost = h(node.state, target_state) + g(node)
-            heapq.heappush(fringer, (cost, child))
+            heapq.heappush(fringer, PrioritizedItem(cost, child))
     else:
         return [], 0, 0
     path = _restore_path(root, node)
     return path, len(traversed) + len(fringer), len(traversed)
-
 
 # def dfs(root: Node, target_state: [[int]]) -> ([[Node]], int, int):
 #     fringer = deque([root])
