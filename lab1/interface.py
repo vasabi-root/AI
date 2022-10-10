@@ -77,12 +77,12 @@ class Interface(QWidget):
         self.qp.drawRect(-1, -1, w+1, h+1)
         
     def initBoards(self) -> None:
-        # start = [ [3, 6, 4],
-        #           [2, 5, 8],
-        #           [7, 1, 0] ] # variant
-        start = [ [0, 4, 3],
-                  [6, 2, 1],
-                  [7, 5, 8] ]
+        start = [ [3, 6, 4],
+                  [2, 5, 8],
+                  [7, 1, 0] ] # variant
+        # start = [ [0, 4, 3],
+        #           [6, 2, 1],
+        #           [7, 5, 8] ]
         self.startBoard = Board(self, QPoint(Config.CELL_SIZE, Config.CELL_SIZE*3), start)
         ends = list()
         ends.append( [ [2, 3, 4], [0, 6, 1], [7, 8, 5] ])
@@ -93,7 +93,7 @@ class Interface(QWidget):
         ends.append( [ [0, 1, 2], [3, 4, 5], [6, 7, 8] ]) # variant
         ends.append( [ [0, 2, 1], [3, 4, 5], [6, 7, 8] ]) # variant 1,2 = 2,1
         ends.append( [ [6, 4, 3], [5, 0, 1], [2, 7, 8] ]) # depth = 400
-        end = ends[-1]
+        end = ends[-2]
         self.endBoard = Board(
             self, 
             QPoint(Config.WINDOW_WIDTH - (Config.CELL_SIZE*4), Config.CELL_SIZE*3), 
@@ -276,7 +276,7 @@ class Interface(QWidget):
     def largePathMessage(self) -> None:
         QMessageBox.warning(self, "Solution found", 
         f'Path too large!\
-        \n path len:              {self.animeBoard.solution[0]}\
+        \n path len:              {len(self.animeBoard.solution[0])-1}\
         \n capacitive difficulty: {self.animeBoard.solution[1]}\
         \n timing difficulty:     {self.animeBoard.solution[2]}')
         self.crunchAnimeStart()

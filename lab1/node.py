@@ -84,8 +84,8 @@ def dfs_depth(root: Node, target_state: [[int]], depth) -> ([[Node]], int, int):
                 continue
             traversed.add(node.hashable_state)
             next_states = node.next_states()
-            for state in next_states:
-                fringer.append(state)
+            for child in next_states:
+                fringer.append(child)
     else:
         return [], 0, 0
     path = []
